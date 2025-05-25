@@ -6,32 +6,31 @@ using TrickSaber.Configuration;
 using TrickSaber.Installers;
 using IPALogger = IPA.Logging.Logger;
 
-namespace TrickSaber
+namespace TrickSaber;
+
+[Plugin(RuntimeOptions.DynamicInit)]
+public class Plugin
 {
-    [Plugin(RuntimeOptions.DynamicInit)]
-    public class Plugin
+
+    [Init]
+    public Plugin(IPALogger logger, Config conf, Zenjector zenjector)
     {
+        var pluginConfig = conf.Generated<PluginConfig>();
 
-        [Init]
-        public Plugin(IPALogger logger, Config conf, Zenjector zenjector)
-        {
-            var pluginConfig = conf.Generated<PluginConfig>();
+        zenjector.UseLogger(logger);
+        zenjector.UseHttpService();
+        zenjector.Install<AppInstaller>(Location.App, pluginConfig);
+        zenjector.Install<MenuInstaller>(Location.Menu);
+        zenjector.Install<GameInstaller>(Location.StandardPlayer);
+    }
 
-            zenjector.UseLogger(logger);
-            zenjector.UseHttpService();
-            zenjector.Install<AppInstaller>(Location.App, pluginConfig);
-            zenjector.Install<MenuInstaller>(Location.Menu);
-            zenjector.Install<GameInstaller>(Location.StandardPlayer);
-        }
+    [OnEnable]
+    public void OnEnable()
+    {
+    }
 
-        [OnEnable]
-        public void OnEnable()
-        {
-        }
-
-        [OnDisable]
-        public void OnDisable()
-        {
-        }
+    [OnDisable]
+    public void OnDisable()
+    {
     }
 }

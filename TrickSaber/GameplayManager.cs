@@ -12,85 +12,84 @@ using TrickSaber.Configuration;
 using UnityEngine;
 using Zenject;
 
-namespace TrickSaber
+namespace TrickSaber;
+
+internal class GameplayManager : IInitializable
 {
-    internal class GameplayManager : IInitializable
+    private readonly PluginConfig _config;
+    private readonly SiraLog _logger;
+    private readonly Submission _submission;
+    private readonly PauseMenuManager _pauseMenuManager;
+
+    public GameplayManager(PluginConfig config, SiraLog logger, Submission submission, [InjectOptional] PauseMenuManager pauseMenuManager)
     {
-        private readonly PluginConfig _config;
-        private readonly SiraLog _logger;
-        private readonly Submission _submission;
-        private readonly PauseMenuManager _pauseMenuManager;
+        _config = config;
+        _logger = logger;
+        _submission = submission;
+        _pauseMenuManager = pauseMenuManager;
+    }
 
-        public GameplayManager(PluginConfig config, SiraLog logger, Submission submission, [InjectOptional] PauseMenuManager pauseMenuManager)
+    public void DisableScoreSubmissionIfNeeded()
+    {
+        foreach (var propertyInfo in typeof(PluginConfig).GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            _config = config;
-            _logger = logger;
-            _submission = submission;
-            _pauseMenuManager = pauseMenuManager;
-        }
+            if(propertyInfo.PropertyType!=typeof(bool)) continue;
 
-        public void DisableScoreSubmissionIfNeeded()
+            var attr = Attribute.GetCustomAttribute(
+                    propertyInfo,
+                    typeof(DisablesScoringAttribute))
+                as DisablesScoringAttribute;
+
+            if(attr==null) continue;
+
+            DisableScore(
+                (bool)propertyInfo.GetValue(_config),
+                string.IsNullOrEmpty(attr.Reason)
+                    ? propertyInfo.Name
+                    : attr.Reason);
+        }
+    }
+
+    public void DisableScore(bool disable, string reason)
+    {
+        if (!disable) return;
+        _submission.DisableScoreSubmission("Tricksaber", reason);
+    }
+
+    public void Initialize()
+    {
+        DisableScoreSubmissionIfNeeded();
+
+        try
         {
-            foreach (var propertyInfo in typeof(PluginConfig).GetProperties(BindingFlags.Instance | BindingFlags.Public))
-            {
-                if(propertyInfo.PropertyType!=typeof(bool)) continue;
-
-                var attr = Attribute.GetCustomAttribute(
-                            propertyInfo,
-                            typeof(DisablesScoringAttribute))
-                    as DisablesScoringAttribute;
-
-                if(attr==null) continue;
-
-                DisableScore(
-                    (bool)propertyInfo.GetValue(_config),
-                    string.IsNullOrEmpty(attr.Reason)
-                        ? propertyInfo.Name
-                        : attr.Reason);
-            }
+            CreateCheckbox();
         }
-
-        public void DisableScore(bool disable, string reason)
+        catch
         {
-            if (!disable) return;
-            _submission.DisableScoreSubmission("Tricksaber", reason);
+            _logger.Warn($"No checkbox for you sir");
         }
+    }
 
-        public void Initialize()
-        {
-            DisableScoreSubmissionIfNeeded();
+    public void CreateCheckbox()
+    {
+        if (_pauseMenuManager == null) return;
 
-            try
-            {
-                CreateCheckbox();
-            }
-            catch
-            {
-                _logger.Warn($"No checkbox for you sir");
-            }
-        }
+        var canvas = _pauseMenuManager._levelBar
+            .transform
+            .parent
+            .parent
+            .GetComponent<Canvas>();
+        if (!canvas) return;
 
-        public void CreateCheckbox()
-        {
-            if (_pauseMenuManager == null) return;
+        var toggleObject = new ToggleSettingTag().CreateObject(canvas.transform);
 
-            var canvas = _pauseMenuManager._levelBar
-                .transform
-                .parent
-                .parent
-                .GetComponent<Canvas>();
-            if (!canvas) return;
+        (toggleObject.transform as RectTransform).anchoredPosition = new Vector2(26, -15);
+        (toggleObject.transform as RectTransform).sizeDelta = new Vector2(-130, 7);
 
-            var toggleObject = new ToggleSettingTag().CreateObject(canvas.transform);
+        toggleObject.transform.Find("NameText").GetComponent<CurvedTextMeshPro>().text = "Tricksaber Enabled";
 
-            (toggleObject.transform as RectTransform).anchoredPosition = new Vector2(26, -15);
-            (toggleObject.transform as RectTransform).sizeDelta = new Vector2(-130, 7);
-
-            toggleObject.transform.Find("NameText").GetComponent<CurvedTextMeshPro>().text = "Tricksaber Enabled";
-
-            var toggleSetting = toggleObject.GetComponent<ToggleSetting>();
-            toggleSetting.Value = _config.TrickSaberEnabled;
-            toggleSetting.Toggle.onValueChanged.AddListener(enabled => { _config.TrickSaberEnabled = enabled; });
-        }
+        var toggleSetting = toggleObject.GetComponent<ToggleSetting>();
+        toggleSetting.Value = _config.TrickSaberEnabled;
+        toggleSetting.Toggle.onValueChanged.AddListener(enabled => { _config.TrickSaberEnabled = enabled; });
     }
 }

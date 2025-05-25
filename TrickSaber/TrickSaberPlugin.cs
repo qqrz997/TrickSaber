@@ -13,48 +13,47 @@ using UnityEngine.XR;
 using Zenject;
 using Version = Hive.Versioning.Version;
 
-namespace TrickSaber
+namespace TrickSaber;
+
+class TrickSaberPlugin : IInitializable
 {
-    class TrickSaberPlugin : IInitializable
+    public bool Initialized;
+
+    public string ControllerModel;
+    public bool IsKnucklesController => ControllerModel.Contains("Knuckles");
+
+    public Version Version;
+    public Version RemoteVersion;
+    public bool IsNewestVersion = true;
+
+    private readonly SiraLog _logger;
+
+    public TrickSaberPlugin(SiraLog logger)
     {
-        public bool Initialized;
+        _logger = logger;
+    }
 
-        public string ControllerModel;
-        public bool IsKnucklesController => ControllerModel.Contains("Knuckles");
+    public void Initialize()
+    {
+        var ver = Assembly.GetExecutingAssembly().GetName().Version;
+        Version = new Version(ver.Major, ver.Minor, ver.Build);
 
-        public Version Version;
-        public Version RemoteVersion;
-        public bool IsNewestVersion = true;
+        ControllerModel = GetControllerName();
+        Initialized = true;
 
-        private readonly SiraLog _logger;
+        _logger.Debug($"TrickSaber version {Version} started");
+    }
 
-        public TrickSaberPlugin(SiraLog logger)
-        {
-            _logger = logger;
-        }
+    public string GetControllerName()
+    {
+        InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
+        if (!device.isValid) device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
+        if (!device.isValid) return "";
+        return device.name;
+    }
 
-        public void Initialize()
-        {
-            var ver = Assembly.GetExecutingAssembly().GetName().Version;
-            Version = new Version(ver.Major, ver.Minor, ver.Build);
-
-            ControllerModel = GetControllerName();
-            Initialized = true;
-
-            _logger.Debug($"TrickSaber version {Version} started");
-        }
-
-        public string GetControllerName()
-        {
-            InputDevice device = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
-            if (!device.isValid) device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-            if (!device.isValid) return "";
-            return device.name;
-        }
-
-        internal class Release
-        {
-            [JsonProperty("tag_name")] public string TagName;
-        }
+    internal class Release
+    {
+        [JsonProperty("tag_name")] public string TagName;
     }
 }

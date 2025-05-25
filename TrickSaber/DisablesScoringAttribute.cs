@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace TrickSaber
+namespace TrickSaber;
+
+internal class DisablesScoringAttribute : Attribute
 {
-    internal class DisablesScoringAttribute : Attribute
-    {
-        public string Reason;
-    }
+    public string Reason;
 }

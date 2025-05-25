@@ -1,44 +1,43 @@
 ﻿using System;
 
-namespace TrickSaber
+namespace TrickSaber;
+
+public enum VRSystem
 {
-    public enum VRSystem
-    {
-        Oculus,
-        SteamVR
-    }
+    Oculus,
+    SteamVR
+}
 
-    public enum ThumstickDir
-    {
-        Horizontal,
-        Vertical
-    }
+public enum ThumstickDir
+{
+    Horizontal,
+    Vertical
+}
 
-    public enum SpinDir
-    {
-        Forward,
-        Backward
-    }
+public enum SpinDir
+{
+    Forward,
+    Backward
+}
 
-    public enum TrickAction
-    {
-        None,
-        Throw,
-        Spin
-    }
+public enum TrickAction
+{
+    None,
+    Throw,
+    Spin
+}
 
-    public enum TrickState
-    {
-        Inactive,
-        Started,
-        Ending
-    }
+public enum TrickState
+{
+    Inactive,
+    Started,
+    Ending
+}
 
-    public static class EnumTools
+public static class EnumTools
+{
+    public static TEnum GetEnumValue<TEnum>(this string name)
     {
-        public static TEnum GetEnumValue<TEnum>(this string name)
-        {
-            return (TEnum) Enum.Parse(typeof(TEnum), name, true);
-        }
+        return (TEnum) Enum.Parse(typeof(TEnum), name, true);
     }
 }
