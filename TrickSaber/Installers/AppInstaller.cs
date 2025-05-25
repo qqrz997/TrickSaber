@@ -1,7 +1,5 @@
-﻿using SiraUtil;
-using TrickSaber.Configuration;
+﻿using TrickSaber.Configuration;
 using Zenject;
-using Logger = IPA.Logging.Logger;
 
 namespace TrickSaber.Installers;
 

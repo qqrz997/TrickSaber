@@ -1,6 +1,4 @@
-﻿using IPA.Utilities;
-
-namespace TrickSaber;
+﻿namespace TrickSaber;
 
 internal class SaberControllerBearer
 {

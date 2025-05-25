@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using IPA.Utilities;
 using SiraUtil.Logging;
-using SiraUtil.Tools;
 using TrickSaber.Configuration;
 using UnityEngine;
 using Zenject;

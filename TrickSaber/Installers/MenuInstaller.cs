@@ -1,5 +1,4 @@
-﻿using SiraUtil;
-using TrickSaber.UI;
+﻿using TrickSaber.UI;
 using TrickSaber.ViewControllers;
 using Zenject;
 

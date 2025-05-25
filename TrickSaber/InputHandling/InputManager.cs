@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SiraUtil.Logging;
-using SiraUtil.Tools;
 using TrickSaber.Configuration;
 using UnityEngine.XR;
 

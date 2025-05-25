@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using UnityEngine;
 using SiraUtil.Sabers;
 using TrickSaber.Configuration;
+using UnityEngine;
 using Zenject;
 using Object = UnityEngine.Object;
 

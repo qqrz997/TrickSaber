@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine.XR;
+﻿using UnityEngine.XR;
 
 namespace TrickSaber.InputHandling;
 
