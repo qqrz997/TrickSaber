@@ -1,37 +1,31 @@
 ﻿using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
+using IPA.Loader;
+using IPA.Logging;
 using SiraUtil.Zenject;
 using TrickSaber.Configuration;
 using TrickSaber.Installers;
-using IPALogger = IPA.Logging.Logger;
 
 namespace TrickSaber
 {
-    [Plugin(RuntimeOptions.DynamicInit)]
+    [Plugin(RuntimeOptions.DynamicInit), NoEnableDisable]
     public class Plugin
     {
-
+        public static Logger Log { get; private set; } = null!;
+        
         [Init]
-        public Plugin(IPALogger logger, Config conf, Zenjector zenjector)
+        public Plugin(Logger logger, Config config, Zenjector zenjector, PluginMetadata pluginMetadata)
         {
-            var pluginConfig = conf.Generated<PluginConfig>();
+            Log = logger;
 
             zenjector.UseLogger(logger);
             zenjector.UseHttpService();
-            zenjector.Install<AppInstaller>(Location.App, pluginConfig);
+            zenjector.Install<AppInstaller>(Location.App, config.Generated<PluginConfig>());
             zenjector.Install<MenuInstaller>(Location.Menu);
             zenjector.Install<GameInstaller>(Location.StandardPlayer);
-        }
-
-        [OnEnable]
-        public void OnEnable()
-        {
-        }
-
-        [OnDisable]
-        public void OnDisable()
-        {
+            
+            Log.Info($"{pluginMetadata.Name} {pluginMetadata.HVersion} has been initialized.");
         }
     }
 }
