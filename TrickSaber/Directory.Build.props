@@ -1,17 +1,36 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- This file contains project properties used by the build. -->
 <Project>
-  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <DisableCopyToPlugins>true</DisableCopyToPlugins>
-    <DisableZipRelease>true</DisableZipRelease>
+
+  <!-- Plugin Metadata -->
+  <PropertyGroup>
+    <PluginId>TrickSaber</PluginId>
+    <PluginName>TrickSaber</PluginName>
+    <Authors>ToniMacaroni</Authors>
+    <Version>1.1.3</Version>
+    <GameVersion>1.26.0</GameVersion>
+    <Description>A BeatSaber mod for performing tricks</Description>
+    <!--<PluginIcon></PluginIcon>-->
+    <!--<ProjectSource></ProjectSource>-->
+    <!--<ProjectHome></ProjectHome>-->
+    <!--<DonateUrl></DonateUrl>-->
   </PropertyGroup>
-  <PropertyGroup Condition="'$(NCrunch)' == '1'">
-    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
-    <DisableCopyToPlugins>true</DisableCopyToPlugins>
-    <DisableZipRelease>true</DisableZipRelease>
-  </PropertyGroup>
+
+  <!-- Plugin Dependencies -->
   <ItemGroup>
-    <SourceRoot Include="$(MSBuildThisFileDirectory)/"/>
+    <DependsOn Include="BSIPA" Version="^4.3.0"/>
+    <DependsOn Include="BeatSaberMarkupLanguage" Version="^1.12.0"/>
+    <DependsOn Include="SiraUtil" Version="^3.1.0"/>
   </ItemGroup>
+
+  <PropertyGroup>
+    <BSMTProjectType>BSIPA</BSMTProjectType>
+    <GenerateManifest>true</GenerateManifest>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' != 'Release'">
+    <DisableZipRelease>true</DisableZipRelease>
+  </PropertyGroup>
+  
 </Project>
+
