@@ -10,27 +10,27 @@ namespace TrickSaber;
 
 internal class SaberTrickManager : MonoBehaviour
 {
-    public readonly Dictionary<TrickAction, Trick> Tricks = new Dictionary<TrickAction, Trick>();
+    private readonly Dictionary<TrickAction, Trick> _tricks = new Dictionary<TrickAction, Trick>();
 
-    public SaberTrickModel SaberTrickModel;
+    public SaberTrickModel SaberTrickModel = null!;
 
     public bool Enabled = true;
 
     public bool IsLeftSaber => _saber.saberType == SaberType.SaberA;
 
-    private VRController _vrController;
+    private VRController _vrController = null!;
 
-    private Saber _saber;
+    private Saber _saber = null!;
 
-    private PluginConfig _config;
-    private GlobalTrickManager _globalTrickManager;
-    private SiraLog _logger;
-    private PauseController _pauseController;
-    private MovementController _movementController;
-    private InputManager _inputManager;
-    private AudioTimeSyncController _audioTimeSyncController;
+    private PluginConfig _config = null!;
+    private GlobalTrickManager _globalTrickManager = null!;
+    private SiraLog _logger = null!;
+    private PauseController _pauseController = null!;
+    private MovementController _movementController = null!;
+    private InputManager _inputManager = null!;
+    private AudioTimeSyncController _audioTimeSyncController = null!;
 
-    private Trick.Factory _trickFactory;
+    private Trick.Factory _trickFactory = null!;
 
     [Inject]
     private void Construct(
@@ -75,7 +75,7 @@ internal class SaberTrickManager : MonoBehaviour
         if (IsLeftSaber) _globalTrickManager.LeftSaberTrickManager = this;
         else _globalTrickManager.RightSaberTrickManager = this;
 
-        _movementController.Init(_vrController, this);
+        _movementController.Init(_vrController);
 
         _inputManager.Init(_saber.saberType);
         _inputManager.TrickActivated += OnTrickActivated;
@@ -100,12 +100,12 @@ internal class SaberTrickManager : MonoBehaviour
             _pauseController.didResumeEvent += EndAllTricks;
         }
 
-        _logger.Info($"Trick Manager initialized {Tricks.Count} trick{(Tricks.Count == 1 ? string.Empty : "s")}.");
+        _logger.Info($"Trick Manager initialized {_tricks.Count} trick{(_tricks.Count == 1 ? string.Empty : "s")}.");
     }
 
     private void Cleanup()
     {
-        foreach (var trick in Tricks.Values)
+        foreach (var trick in _tricks.Values)
         {
             DestroyImmediate(trick);
         }
@@ -121,7 +121,7 @@ internal class SaberTrickManager : MonoBehaviour
 
     private void OnTrickDeactivated(TrickAction trickAction)
     {
-        var trick = Tricks[trickAction];
+        var trick = _tricks[trickAction];
         if (trick.State != TrickState.Started) return;
         trick.EndTrick();
     }
@@ -129,7 +129,7 @@ internal class SaberTrickManager : MonoBehaviour
     private void OnTrickActivated(TrickAction trickAction, float val)
     {
         if (!CanDoTrick()) return;
-        var trick = Tricks[trickAction];
+        var trick = _tricks[trickAction];
         trick.Value = val;
         if (trick.State != TrickState.Inactive) return;
         if (_audioTimeSyncController.state ==
@@ -163,17 +163,17 @@ internal class SaberTrickManager : MonoBehaviour
         trick.TrickStarted += OnTrickStart;
         trick.TrickEnding += OnTrickEnding;
         trick.TrickEnded += OnTrickEnd;
-        Tricks.Add(trick.TrickAction, trick);
+        _tricks.Add(trick.TrickAction, trick);
     }
 
     public bool IsTrickInState(TrickAction trickAction, TrickState state)
     {
-        return Tricks[trickAction].State == state;
+        return _tricks[trickAction].State == state;
     }
 
     public bool IsDoingTrick()
     {
-        foreach (var trick in Tricks.Values)
+        foreach (var trick in _tricks.Values)
         {
             if (trick.State != TrickState.Inactive) return true;
         }
@@ -183,7 +183,7 @@ internal class SaberTrickManager : MonoBehaviour
 
     public void EndAllTricks()
     {
-        foreach (var trick in Tricks.Values)
+        foreach (var trick in _tricks.Values)
         {
             trick.OnTrickEndImmediately();
         }

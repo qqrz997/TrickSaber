@@ -19,9 +19,9 @@ internal class MiscViewController : BSMLResourceViewController
     [UIValue("DirEnum-list")]
     public List<object> ThumbstickDirectionsList = Enum.GetNames(typeof(ThumstickDir)).ToList<object>();
 
-    [UIComponent("scrollable")] private readonly Transform _scrollable = null;
+    [UIComponent("scrollable")] private readonly Transform _scrollable = null!;
 
-    [Inject] private readonly PluginConfig _config = null;
+    [Inject] private readonly PluginConfig _config = null!;
 
     [UIValue("ThumbDir-value")]
     public string ThumbstickDir
@@ -92,7 +92,7 @@ internal class MiscViewController : BSMLResourceViewController
         //align the scrollable, so it uses the whole screen
         if (_scrollable && _scrollable.name == "BSMLScrollableSettingsContainer")
         {
-            var rect = _scrollable as RectTransform;
+            var rect = (RectTransform)_scrollable;
             rect.anchoredPosition = new Vector2(0, 0);
             rect.sizeDelta = new Vector2(-4, -4);
         }

@@ -19,9 +19,6 @@ internal class GlobalTrickManager : IInitializable
         }
     }
 
-
-    public BeatmapObjectManager BeatmapObjectManager;
-
     public SaberTrickManager LeftSaberTrickManager;
     public SaberTrickManager RightSaberTrickManager;
 
@@ -52,13 +49,13 @@ internal class GlobalTrickManager : IInitializable
     private readonly float _slowmoStepAmount;
     private readonly bool _isMultiplayer;
 
-    private Coroutine _applySlowmoCoroutine;
-    private Coroutine _endSlowmoCoroutine;
+    private Coroutine? _applySlowmoCoroutine;
+    private Coroutine? _endSlowmoCoroutine;
 
     private bool _slowmoApplied;
     private float _endSlowmoTarget;
     private float _originalTimeScale;
-    private AudioSource _audioSource;
+    private AudioSource? _audioSource;
     private float _timeSinceLastNote;
 
     private GlobalTrickManager(

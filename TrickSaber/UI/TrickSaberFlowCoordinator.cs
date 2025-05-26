@@ -6,24 +6,10 @@ namespace TrickSaber.UI;
 
 internal class TrickSaberFlowCoordinator : FlowCoordinator
 {
-    private MainFlowCoordinator _mainFlowCoordinator;
-
-    private BindingsViewController _bindingsViewController;
-    private MiscViewController _miscViewController;
-    private ThresholdViewController _thresholdViewController;
-
-    [Inject]
-    public void Construct(
-        MainFlowCoordinator mainFlowCoordinator,
-        BindingsViewController bindingsViewController,
-        MiscViewController miscViewController,
-        ThresholdViewController thresholdViewController)
-    {
-        _mainFlowCoordinator = mainFlowCoordinator;
-        _bindingsViewController = bindingsViewController;
-        _miscViewController = miscViewController;
-        _thresholdViewController = thresholdViewController;
-    }
+    [Inject] private readonly MainFlowCoordinator _mainFlowCoordinator = null!;
+    [Inject] private readonly BindingsViewController _bindingsViewController = null!;
+    [Inject] private readonly MiscViewController _miscViewController = null!;
+    [Inject] private readonly ThresholdViewController _thresholdViewController = null!;
 
     protected override void DidActivate(bool firstActivation, bool addedToHierarchy, bool screenSystemEnabling)
     {

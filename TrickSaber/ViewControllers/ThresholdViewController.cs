@@ -9,7 +9,7 @@ internal class ThresholdViewController : BSMLResourceViewController
 {
     public override string ResourceName => "TrickSaber.Views.ThresholdView.bsml";
 
-    [Inject] private readonly PluginConfig _config = null;
+    [Inject] private readonly PluginConfig _config = null!;
 
     [UIValue("TriggerThresh-value")]
     public float TriggerThresh

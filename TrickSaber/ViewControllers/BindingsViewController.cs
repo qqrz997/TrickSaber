@@ -10,81 +10,64 @@ namespace TrickSaber.ViewControllers;
 
 internal class BindingsViewController : BSMLResourceViewController
 {
-    [UIValue("TrickActionEnum-list")]
-    public List<object> TrickActionList = Enum.GetNames(typeof(TrickAction)).ToList<object>();
+    public Array TrickActionOptions = Enum.GetValues(typeof(TrickAction));
 
     public override string ResourceName => "TrickSaber.Views.BindingsView.bsml";
 
-    [Inject] private readonly PluginConfig _config = null;
-    [Inject] private readonly TrickSaberPlugin _pluginInfo = null;
+    [Inject] private readonly PluginConfig _config = null!;
 
-    [UIValue("TriggerAction-value")]
-    public string TriggerAction
+    public TrickAction TriggerAction
     {
-        get => _config.TriggerAction.ToString();
+        get => _config.TriggerAction;
         set
         {
-            _config.TriggerAction = value.GetEnumValue<TrickAction>();
+            _config.TriggerAction = value;
             CheckMultiBinding();
         }
     }
 
-    [UIValue("GripAction-value")]
-    public string GripAction
+    public TrickAction GripAction
     {
-        get => _config.GripAction.ToString();
+        get => _config.GripAction;
         set
         {
-            _config.GripAction = value.GetEnumValue<TrickAction>();
+            _config.GripAction = value;
             CheckMultiBinding();
         }
     }
 
-    [UIValue("ThumbAction-value")]
-    public string ThumbAction
+    public TrickAction ThumbAction
     {
-        get => _config.ThumbstickAction.ToString();
+        get => _config.ThumbstickAction;
         set
         {
-            _config.ThumbstickAction = value.GetEnumValue<TrickAction>();
+            _config.ThumbstickAction = value;
             CheckMultiBinding();
         }
     }
 
-    [UIValue("ReverseTrigger-value")]
     public bool ReverseTrigger
     {
         get => _config.ReverseTrigger;
         set => _config.ReverseTrigger = value;
     }
 
-    [UIValue("ReverseGrip-value")]
     public bool ReverseGrip
     {
         get => _config.ReverseGrip;
         set => _config.ReverseGrip = value;
     }
 
-    [UIValue("ReverseThumbstick-value")]
     public bool ReverseThumbstick
     {
         get => _config.ReverseThumbstick;
         set => _config.ReverseThumbstick = value;
     }
 
-    [UIValue("ShowIndexText")] public bool ShowIndexText => _pluginInfo.IsKnucklesController;
-
-    [UIValue("ContactInfo")] public string ContactInfo => "Original mod by Toni Macaroni"; // "My Discord : Toni Macaroni#8970"
-
-    [UIValue("Version")] public string Version => _pluginInfo.Version.ToString();
-
-    [UIValue("NewerVersionAvailable")] public bool NewerVersionAvailable => !_pluginInfo.IsNewestVersion;
-
-    [UIValue("NewerVersionText")] public string NewerVersionText => "Newer version available on Github (" + _pluginInfo.RemoteVersion + ")";
+    public string Version => Plugin.Metadata.HVersion.ToString();
+    public string Credits => "Original mod by Toni Macaroni";
 
     private bool _multiBindingTextActive;
-
-    [UIComponent("MultiBindingTextActive")]
     public bool MultiBindingTextActive
     {
         get => _multiBindingTextActive;
@@ -95,20 +78,11 @@ internal class BindingsViewController : BSMLResourceViewController
         }
     }
 
-    void CheckMultiBinding()
+    private void CheckMultiBinding()
     {
-        List<string> boundActions = new List<string>();
-        bool isMultiBinding = false;
-
-        if (TriggerAction!="None" && boundActions.Contains(TriggerAction)) isMultiBinding = true;
-        else boundActions.Add(TriggerAction);
-
-        if (GripAction != "None" && boundActions.Contains(GripAction)) isMultiBinding = true;
-        else boundActions.Add(GripAction);
-
-        if (ThumbAction != "None" && boundActions.Contains(ThumbAction)) isMultiBinding = true;
-        else boundActions.Add(ThumbAction);
-
-        MultiBindingTextActive = isMultiBinding;
+        MultiBindingTextActive = new List<TrickAction> { TriggerAction, GripAction, ThumbAction }
+            .Where(action => action != TrickAction.None)
+            .GroupBy(action => action)
+            .Any(group => group.Count() > 1);
     }
 }

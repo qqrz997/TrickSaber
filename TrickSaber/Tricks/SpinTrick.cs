@@ -7,7 +7,7 @@ namespace TrickSaber.Tricks;
 internal class SpinTrick : Trick
 {
     private bool _isVelocityDependent;
-    private Transform _saberModelTransform;
+    private Transform? _saberModelTransform;
     private float _spinSpeed;
     private float _largestSpinSpeed;
     private float _finalSpinSpeed;
@@ -16,7 +16,10 @@ internal class SpinTrick : Trick
 
     public override void OnInit()
     {
-        _saberModelTransform = SaberTrickModel.OriginalSaberModel.transform;
+        if (SaberTrickModel.OriginalSaberModel)
+        {
+            _saberModelTransform = SaberTrickModel.OriginalSaberModel!.transform;
+        }
         _isVelocityDependent = _config.IsSpeedVelocityDependent;
     }
 
@@ -45,13 +48,18 @@ internal class SpinTrick : Trick
         _finalSpinSpeed = _spinSpeed;
         if (!_isVelocityDependent) _finalSpinSpeed *= (float) Math.Pow(Value, 3);
         if (Math.Abs(_finalSpinSpeed) > Math.Abs(_largestSpinSpeed)) _largestSpinSpeed = _finalSpinSpeed;
-        _saberModelTransform.Rotate(Vector3.right * _finalSpinSpeed);
+        if (_saberModelTransform)
+        {
+            _saberModelTransform!.Rotate(Vector3.right * _finalSpinSpeed);
+        }
     }
 
     #region Rotation-end Coroutines
     private IEnumerator LerpToOriginalRotation()
     {
-        var rot = _saberModelTransform.localRotation;
+        if (!_saberModelTransform) yield break;
+        
+        var rot = _saberModelTransform!.localRotation;
         while (Quaternion.Angle(rot, Quaternion.identity) > 5f)
         {
             rot = Quaternion.Lerp(rot, Quaternion.identity, Time.deltaTime * 20);
@@ -65,6 +73,8 @@ internal class SpinTrick : Trick
 
     private IEnumerator CompleteRotation()
     {
+        if (!_saberModelTransform) yield break;
+        
         var minSpeed = 8;
         var largestSpinSpeed = _largestSpinSpeed;
 
@@ -74,7 +84,7 @@ internal class SpinTrick : Trick
         }
 
         var threshold = Mathf.Abs(largestSpinSpeed) + 0.1f;
-        var angle = Quaternion.Angle(_saberModelTransform.localRotation, Quaternion.identity);
+        var angle = Quaternion.Angle(_saberModelTransform!.localRotation, Quaternion.identity);
 
         while (angle > threshold)
         {
@@ -95,7 +105,10 @@ internal class SpinTrick : Trick
 
     public override void OnTrickEndImmediately()
     {
-        _saberModelTransform.localRotation = Quaternion.identity;
+        if (_saberModelTransform)
+        {
+            _saberModelTransform!.localRotation = Quaternion.identity;
+        }
         Reset();
     }
 }

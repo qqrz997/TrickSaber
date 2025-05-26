@@ -45,7 +45,7 @@ internal class GameInstaller : Installer
             .WithArguments(saberType);
     }
 
-    private GameObject GetSaber(InjectContext ctx)
+    private GameObject? GetSaber(InjectContext ctx)
     {
         var saberManager = ctx.Container.Resolve<SaberManager>();
 

@@ -9,28 +9,21 @@ namespace TrickSaber.Tricks;
 internal abstract class Trick : MonoBehaviour
 {
     protected bool _endRequested;
-    protected MovementController MovementController;
-    protected SaberTrickManager SaberTrickManager;
-    protected SaberTrickModel SaberTrickModel;
+    protected MovementController MovementController = null!; // set in initializer
+    protected SaberTrickManager SaberTrickManager = null!; // set in initializer
+    protected SaberTrickModel SaberTrickModel = null!; // set in initializer
     public TrickState State = TrickState.Inactive;
     public float Value;
 
     public abstract TrickAction TrickAction { get; }
     public string Name => TrickAction.ToString();
 
-    public event Action<TrickAction> TrickStarted;
-    public event Action<TrickAction> TrickEnding;
-    public event Action<TrickAction> TrickEnded;
+    public event Action<TrickAction>? TrickStarted;
+    public event Action<TrickAction>? TrickEnding;
+    public event Action<TrickAction>? TrickEnded;
 
-    protected SiraLog _logger;
-    protected PluginConfig _config;
-
-    [Inject]
-    private void Construct(SiraLog logger, PluginConfig config)
-    {
-        _logger = logger;
-        _config = config;
-    }
+    [Inject] protected readonly SiraLog _logger = null!;
+    [Inject] protected readonly PluginConfig _config = null!;
 
     public void Init(SaberTrickManager saberTrickManager, MovementController movementController)
     {

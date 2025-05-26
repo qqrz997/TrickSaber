@@ -13,9 +13,10 @@ internal class ThrowTrick : Trick
 
     public override void OnTrickStart()
     {
+        if (!SaberTrickModel.Rigidbody) return;
+        
         SaberTrickModel.ChangeToTrickModel();
-        SaberTrickModel.Rigidbody.isKinematic = false;
-
+        SaberTrickModel.Rigidbody!.isKinematic = false;
         Vector3 finalVelocity = MovementController.GetAverageVelocity() * _velocityMultiplier;
         SaberTrickModel.Rigidbody.velocity = finalVelocity * 3;
         _saberRotSpeed = finalVelocity.magnitude;
@@ -26,7 +27,8 @@ internal class ThrowTrick : Trick
 
     public override void OnTrickEndRequested()
     {
-        SaberTrickModel.Rigidbody.velocity = Vector3.zero;
+        if (!SaberTrickModel.Rigidbody) return;
+        SaberTrickModel.Rigidbody!.velocity = Vector3.zero;
         StartCoroutine(ReturnSaber(_config.ReturnSpeed));
     }
 
@@ -44,8 +46,9 @@ internal class ThrowTrick : Trick
 
     public IEnumerator ReturnSaber(float speed)
     {
-        SaberTrickModel.Rigidbody.AddRelativeTorque(Vector3.right * speed * (_saberRotSpeed<0?-1:1) * _config.ReturnSpinMultiplier, ForceMode.VelocityChange);
-        Vector3 position = SaberTrickModel.TrickModel.transform.position;
+        if (!SaberTrickModel.Rigidbody || !SaberTrickModel.TrickModel) yield break;
+        SaberTrickModel.Rigidbody!.AddRelativeTorque(Vector3.right * speed * (_saberRotSpeed<0?-1:1) * _config.ReturnSpinMultiplier, ForceMode.VelocityChange);
+        Vector3 position = SaberTrickModel.TrickModel!.transform.position;
         var controllerPos = MovementController.ControllerPosition;
         float distance = Vector3.Distance(position, controllerPos);
         while (distance > _controllerSnapThreshold)
@@ -68,7 +71,8 @@ internal class ThrowTrick : Trick
 
     private void ThrowEnd()
     {
-        SaberTrickModel.Rigidbody.isKinematic = true;
+        if (!SaberTrickModel.Rigidbody) return;
+        SaberTrickModel.Rigidbody!.isKinematic = true;
         SaberTrickModel.ChangeToActualSaber();
         Reset();
     }

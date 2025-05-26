@@ -4,5 +4,5 @@ namespace TrickSaber;
 
 internal class DisablesScoringAttribute : Attribute
 {
-    public string Reason;
+    public string? Reason;
 }

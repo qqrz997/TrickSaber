@@ -9,14 +9,14 @@ namespace TrickSaber;
 
 public class SaberTrickModel
 {
-    public Rigidbody Rigidbody { get; private set; }
-    public GameObject OriginalSaberModel { get; private set; }
-    public GameObject TrickModel { get; private set; }
+    public Rigidbody? Rigidbody { get; private set; }
+    public GameObject? OriginalSaberModel { get; private set; }
+    public GameObject? TrickModel { get; private set; }
 
     private readonly PluginConfig _config;
     private readonly SiraSaberFactory _saberFactory;
-    private SiraSaber _siraSaber;
-    private Transform _saberTransform;
+    private SiraSaber? _siraSaber;
+    private Transform? _saberTransform;
 
     private readonly bool _isMultiplayer;
 
@@ -68,22 +68,29 @@ public class SaberTrickModel
 
     public void ChangeToTrickModel()
     {
-        TrickModel.SetActive(true);
-        _saberTransform.position = OriginalSaberModel.transform.position;
-        _saberTransform.rotation = OriginalSaberModel.transform.rotation;
-        OriginalSaberModel.SetActive(false);
+        if (TrickModel != null)
+        {
+            TrickModel.SetActive(true);
+        }
+
+        if (_saberTransform != null && OriginalSaberModel != null)
+        {
+            _saberTransform.position = OriginalSaberModel.transform.position;
+            _saberTransform.rotation = OriginalSaberModel.transform.rotation;
+            OriginalSaberModel.SetActive(false);
+        }
     }
 
     public void ChangeToActualSaber()
     {
-        OriginalSaberModel.SetActive(true);
-        TrickModel.SetActive(false);
+        if (OriginalSaberModel != null) OriginalSaberModel.SetActive(true);
+        if (TrickModel != null) TrickModel.SetActive(false);
     }
 
-    private async Task<GameObject> GetSaberModel(Saber saber)
+    private async Task<GameObject?> GetSaberModel(Saber saber)
     {
         //return saber.GetComponentInChildren<SaberModelController>()?.gameObject;
-        SaberModelController smc = null;
+        SaberModelController? smc = null;
 
         var timeout = 2000;
         var interval = 300;

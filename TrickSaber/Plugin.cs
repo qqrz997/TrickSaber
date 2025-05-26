@@ -13,11 +13,13 @@ namespace TrickSaber;
 public class Plugin
 {
     public static Logger Log { get; private set; } = null!;
+    public static PluginMetadata Metadata { get; private set; } = null!;
     
     [Init]
     public Plugin(Logger logger, Config config, Zenjector zenjector, PluginMetadata pluginMetadata)
     {
         Log = logger;
+        Metadata = pluginMetadata;
 
         zenjector.UseLogger(logger);
         zenjector.UseHttpService();

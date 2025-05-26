@@ -7,8 +7,8 @@ namespace TrickSaber.InputHandling;
 
 internal class InputManager
 {
-    public event Action<TrickAction, float> TrickActivated;
-    public event Action<TrickAction> TrickDeactivated;
+    public event Action<TrickAction, float>? TrickActivated;
+    public event Action<TrickAction>? TrickDeactivated;
 
     private readonly PluginConfig _config;
     private readonly TrickInputHandler _trickInputHandler;

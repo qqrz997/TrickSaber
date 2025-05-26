@@ -30,20 +30,15 @@ internal class GameplayManager : IInitializable
     {
         foreach (var propertyInfo in typeof(PluginConfig).GetProperties(BindingFlags.Instance | BindingFlags.Public))
         {
-            if(propertyInfo.PropertyType!=typeof(bool)) continue;
+            if (propertyInfo.PropertyType!=typeof(bool)) continue;
 
-            var attr = Attribute.GetCustomAttribute(
-                    propertyInfo,
-                    typeof(DisablesScoringAttribute))
-                as DisablesScoringAttribute;
-
-            if(attr==null) continue;
-
-            DisableScore(
-                (bool)propertyInfo.GetValue(_config),
-                string.IsNullOrEmpty(attr.Reason)
-                    ? propertyInfo.Name
-                    : attr.Reason);
+            if (Attribute.GetCustomAttribute(propertyInfo, typeof(DisablesScoringAttribute)) 
+                is DisablesScoringAttribute attr)
+            {
+                DisableScore(
+                    (bool)propertyInfo.GetValue(_config),
+                    attr.Reason is null or [] ? propertyInfo.Name : attr.Reason);
+            }
         }
     }
 
@@ -80,8 +75,8 @@ internal class GameplayManager : IInitializable
 
         var toggleObject = new ToggleSettingTag().CreateObject(canvas.transform);
 
-        (toggleObject.transform as RectTransform).anchoredPosition = new Vector2(26, -15);
-        (toggleObject.transform as RectTransform).sizeDelta = new Vector2(-130, 7);
+        ((RectTransform)toggleObject.transform).anchoredPosition = new Vector2(26, -15);
+        ((RectTransform)toggleObject.transform).sizeDelta = new Vector2(-130, 7);
 
         toggleObject.transform.Find("NameText").GetComponent<CurvedTextMeshPro>().text = "Tricksaber Enabled";
 

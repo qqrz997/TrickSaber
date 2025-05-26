@@ -7,28 +7,25 @@ namespace TrickSaber;
 
 internal class MovementController : MonoBehaviour
 {
-    private Vector3[] _angularVelocityBuffer;
+    private Vector3[] _angularVelocityBuffer = null!; // set in initializer
     private int _currentProbeIndex;
 
     private Vector3 _prevPos = Vector3.zero;
     private Quaternion _prevRot = Quaternion.identity;
 
     //Velocity calc
-    private Vector3[] _velocityBuffer;
+    private Vector3[] _velocityBuffer = null!; // set in initializer
     public Vector3 AngularVelocity = Vector3.zero;
-    public VRController Controller;
+    public VRController Controller = null!; // set in initializer
 
     public Vector3 ControllerPosition = Vector3.zero;
     public Quaternion ControllerRotation = Quaternion.identity;
-    public SaberTrickManager SaberTrickManager;
 
     public Vector3 Velocity = Vector3.zero;
-    public Vector3 LocalControllerPosition => Controller.gameObject.transform.localPosition;
-    public Quaternion LocalControllerRotation => Controller.gameObject.transform.localRotation;
 
     public float SaberSpeed => Velocity.magnitude;
 
-    private PluginConfig _config;
+    private PluginConfig _config = null!;
 
     [Inject]
     private void Construct(PluginConfig config)
@@ -39,10 +36,9 @@ internal class MovementController : MonoBehaviour
         _angularVelocityBuffer = new Vector3[_config.VelocityBufferSize];
     }
 
-    public void Init(VRController vrController, SaberTrickManager saberTrickManager)
+    public void Init(VRController vrController)
     {
         Controller = vrController;
-        SaberTrickManager = saberTrickManager;
 
         enabled = true;
     }

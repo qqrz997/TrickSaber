@@ -15,6 +15,6 @@ class AppInstaller : Installer
     public override void InstallBindings()
     {
         Container.BindInstance(_config).AsSingle();
-        Container.BindInterfacesAndSelfTo<TrickSaberPlugin>().AsSingle();
+        Container.BindInterfacesAndSelfTo<InputDeviceInfo>().AsSingle();
     }
 }
