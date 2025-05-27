@@ -18,8 +18,10 @@ internal class GameInstaller : Installer
 
     public override void InstallBindings()
     {
-        Container.BindInterfacesAndSelfTo<GameplayManager>().AsSingle();
-        Container.BindInterfacesAndSelfTo<GlobalTrickManager>().AsSingle();
+        Container.BindInterfacesTo<ScoreSubmissionManager>().AsSingle();
+        Container.BindInterfacesTo<PauseMenuTweaker>().AsSingle();
+        Container.BindInterfacesTo<GlobalTrickManager>().AsSingle();
+        Container.Bind<SlowMotionManager>().AsSingle();
 
         Container.Bind<MovementController>().FromNewComponentSibling().AsTransient();
         Container.Bind<InputManager>().AsTransient();

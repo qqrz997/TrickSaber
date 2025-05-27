@@ -8,21 +8,19 @@ namespace TrickSaber.Tricks;
 
 internal abstract class Trick : MonoBehaviour
 {
-    protected bool _endRequested;
     protected MovementController MovementController = null!; // set in initializer
     protected SaberTrickManager SaberTrickManager = null!; // set in initializer
     protected SaberTrickModel SaberTrickModel = null!; // set in initializer
-    public TrickState State = TrickState.Inactive;
-    public float Value;
+    
+    public TrickState state = TrickState.Inactive;
+    public float value;
 
     public abstract TrickAction TrickAction { get; }
-    public string Name => TrickAction.ToString();
 
     public event Action<TrickAction>? TrickStarted;
     public event Action<TrickAction>? TrickEnding;
     public event Action<TrickAction>? TrickEnded;
 
-    [Inject] protected readonly SiraLog _logger = null!;
     [Inject] protected readonly PluginConfig _config = null!;
 
     public void Init(SaberTrickManager saberTrickManager, MovementController movementController)
@@ -31,7 +29,7 @@ internal abstract class Trick : MonoBehaviour
         MovementController = movementController;
         SaberTrickModel = SaberTrickManager.SaberTrickModel;
         OnInit();
-        _logger.Debug($"Trick: {Name} initialized");
+        Plugin.Log.Debug($"Trick: {TrickAction} initialized");
     }
 
     private void Awake()
@@ -41,10 +39,10 @@ internal abstract class Trick : MonoBehaviour
 
     public bool StartTrick()
     {
-        if (State != TrickState.Inactive) return false;
+        if (state != TrickState.Inactive) return false;
 
         enabled = true;
-        State = TrickState.Started;
+        state = TrickState.Started;
         OnTrickStart();
         TrickStarted?.Invoke(TrickAction);
         return true;
@@ -52,11 +50,10 @@ internal abstract class Trick : MonoBehaviour
 
     public void EndTrick()
     {
-        if (State == TrickState.Started)
+        if (state == TrickState.Started)
         {
             enabled = false;
-            _endRequested = true;
-            State = TrickState.Ending;
+            state = TrickState.Ending;
             TrickEnding?.Invoke(TrickAction);
             OnTrickEndRequested();
         }
@@ -64,8 +61,7 @@ internal abstract class Trick : MonoBehaviour
 
     protected void Reset()
     {
-        State = TrickState.Inactive;
-        _endRequested = false;
+        state = TrickState.Inactive;
         TrickEnded?.Invoke(TrickAction);
     }
 

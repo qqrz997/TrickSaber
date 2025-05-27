@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using TrickSaber.Configuration;
 using UnityEngine.XR;
 
@@ -7,70 +8,71 @@ namespace TrickSaber.InputHandling;
 
 internal class InputManager
 {
-    public event Action<TrickAction, float>? TrickActivated;
-    public event Action<TrickAction>? TrickDeactivated;
-
     private readonly PluginConfig _config;
-    private readonly TrickInputHandler _trickInputHandler;
+    private readonly TrickInputHandler _trickInputHandler = [];
 
     private InputManager(PluginConfig config)
     {
         _config = config;
-
-        _trickInputHandler = new TrickInputHandler();
     }
 
     public void Init(SaberType type)
     {
-        XRNode node = type == SaberType.SaberA ? XRNode.LeftHand : XRNode.RightHand;
-        var controllerInputDevice = InputDevices.GetDeviceAtXRNode(node);
+        var xrNode = type == SaberType.SaberA ? XRNode.LeftHand : XRNode.RightHand;
 
-        var dir = _config.ThumstickDirection;
-
-        var triggerHandler = new TriggerHandler(node, _config.TriggerThreshold, _config.ReverseTrigger);
-        var gripHandler = new GripHandler(controllerInputDevice, _config.GripThreshold, _config.ReverseGrip);
-        var thumbstickAction = new ThumbstickHandler(node, _config.ThumbstickThreshold, dir, _config.ReverseThumbstick);
-
-        _trickInputHandler.Add(_config.TriggerAction, triggerHandler);
-        _trickInputHandler.Add(_config.GripAction, gripHandler);
-        _trickInputHandler.Add(_config.ThumbstickAction, thumbstickAction);
+        var trigger = new TriggerHandler(_config.TriggerThreshold, _config.ReverseTrigger, xrNode);
+        var grip = new GripHandler(_config.GripThreshold, _config.ReverseGrip, xrNode);
+        var thumbstick = new ThumbstickHandler(_config.ThumbstickThreshold, _config.ReverseThumbstick, _config.ThumstickDirection, xrNode);
+     
+        _trickInputHandler.Add(_config.TriggerAction, trigger);
+        _trickInputHandler.Add(_config.GripAction, grip);
+        _trickInputHandler.Add(_config.ThumbstickAction, thumbstick);
     }
+    
+    public event Action<TrickAction, float>? TrickActivated;
+    public event Action<TrickAction>? TrickDeactivated;
 
-    // Using ITickable seems to result in GetHandlers returning no handlers (?!?)
-    // So we need to manually tick
     public void Tick()
     {
-        foreach (TrickAction trickAction in _trickInputHandler.TrickHandlerSets.Keys)
+        foreach (var (action, handlers) in _trickInputHandler)
         {
-            var handlers = _trickInputHandler.GetHandlers(trickAction);
-            if (CheckHandlersDown(handlers, out var val))
-                TrickActivated?.Invoke(trickAction, val);
-
-            else if (CheckHandlersUp(handlers)) TrickDeactivated?.Invoke(trickAction);
+            if (CheckHandlersDown(handlers, out float val))
+            {
+                TrickActivated?.Invoke(action, val);
+            }
+            else if (CheckHandlersUp(handlers))
+            {
+                Plugin.Log.Notice($"{action} deactivated");
+                TrickDeactivated?.Invoke(action);
+            }
         }
     }
 
-    private bool CheckHandlersDown(ISet<InputHandler> handlers, out float val)
+    private static bool CheckHandlersDown(HashSet<InputHandler> handlers, out float val)
     {
         val = 0;
         if (handlers.Count == 0) return false;
         bool output = true;
         foreach (var handler in handlers)
         {
-            output &= handler.Activated(out var handlerValue);
+            output &= handler.Activated(out float handlerValue);
             val += handlerValue;
         }
 
-        if (output) val /= handlers.Count;
+        if (output)
+        {
+            val /= handlers.Count;
+        }
 
         return output;
     }
 
-    private bool CheckHandlersUp(ISet<InputHandler> handlers)
+    private static bool CheckHandlersUp(HashSet<InputHandler> handlers)
     {
-        foreach (InputHandler handler in handlers)
-            if (handler.Deactivated())
-                return true;
+        foreach (var handler in handlers)
+        {
+            if (handler.Deactivated()) return true;
+        }
 
         return false;
     }

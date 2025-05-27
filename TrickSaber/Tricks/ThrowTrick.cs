@@ -8,27 +8,33 @@ internal class ThrowTrick : Trick
     private float _controllerSnapThreshold = 0.3f;
     private float _saberRotSpeed;
     private float _velocityMultiplier = 1;
+    private Transform? _originalParent;
 
     public override TrickAction TrickAction => TrickAction.Throw;
-
+    
+    public override void OnInit()
+    {
+        _controllerSnapThreshold = _config.ControllerSnapThreshold;
+        _velocityMultiplier = _config.ThrowVelocity;
+    }
+    
     public override void OnTrickStart()
     {
-        if (!SaberTrickModel.Rigidbody) return;
+        _originalParent = SaberTrickModel.Transform.parent;
+        SaberTrickModel.Transform.SetParent(null);
         
-        SaberTrickModel.ChangeToTrickModel();
-        SaberTrickModel.Rigidbody!.isKinematic = false;
+        SaberTrickModel.Rigidbody.isKinematic = false;
         Vector3 finalVelocity = MovementController.GetAverageVelocity() * _velocityMultiplier;
         SaberTrickModel.Rigidbody.velocity = finalVelocity * 3;
         _saberRotSpeed = finalVelocity.magnitude;
-        if (MovementController.AngularVelocity.x > 0) _saberRotSpeed *= 150;
-        else _saberRotSpeed *= -150;
+        _saberRotSpeed *= Mathf.Sign(MovementController.AngularVelocity.x) * 150f;
         SaberTrickModel.Rigidbody.AddRelativeTorque(Vector3.right * _saberRotSpeed, ForceMode.Acceleration);
     }
 
     public override void OnTrickEndRequested()
     {
         if (!SaberTrickModel.Rigidbody) return;
-        SaberTrickModel.Rigidbody!.velocity = Vector3.zero;
+        SaberTrickModel.Rigidbody.velocity = Vector3.zero;
         StartCoroutine(ReturnSaber(_config.ReturnSpeed));
     }
 
@@ -38,17 +44,10 @@ internal class ThrowTrick : Trick
         ThrowEnd();
     }
 
-    public override void OnInit()
-    {
-        _controllerSnapThreshold = _config.ControllerSnapThreshold;
-        _velocityMultiplier = _config.ThrowVelocity;
-    }
-
     public IEnumerator ReturnSaber(float speed)
     {
-        if (!SaberTrickModel.Rigidbody || !SaberTrickModel.TrickModel) yield break;
-        SaberTrickModel.Rigidbody!.AddRelativeTorque(Vector3.right * speed * (_saberRotSpeed<0?-1:1) * _config.ReturnSpinMultiplier, ForceMode.VelocityChange);
-        Vector3 position = SaberTrickModel.TrickModel!.transform.position;
+        SaberTrickModel.Rigidbody.AddRelativeTorque(Vector3.right * speed * (_saberRotSpeed<0?-1:1) * _config.ReturnSpinMultiplier, ForceMode.VelocityChange);
+        Vector3 position = SaberTrickModel.Transform.position;
         var controllerPos = MovementController.ControllerPosition;
         float distance = Vector3.Distance(position, controllerPos);
         while (distance > _controllerSnapThreshold)
@@ -60,7 +59,7 @@ internal class ThrowTrick : Trick
             else force = speed * distance;
             force = Mathf.Clamp(force, 0, 200);
             SaberTrickModel.Rigidbody.velocity = direction.normalized * force;
-            position = SaberTrickModel.TrickModel.transform.position;
+            position = SaberTrickModel.GameObject.transform.position;
             controllerPos = MovementController.ControllerPosition;
 
             yield return new WaitForEndOfFrame();
@@ -71,9 +70,10 @@ internal class ThrowTrick : Trick
 
     private void ThrowEnd()
     {
-        if (!SaberTrickModel.Rigidbody) return;
-        SaberTrickModel.Rigidbody!.isKinematic = true;
-        SaberTrickModel.ChangeToActualSaber();
+        SaberTrickModel.Rigidbody.isKinematic = true;
+        SaberTrickModel.Transform.SetParent(_originalParent);
+        SaberTrickModel.Transform.localPosition = SaberTrickModel.DefaultPosition;
+        SaberTrickModel.Transform.localRotation = SaberTrickModel.DefaultRotation;
         Reset();
     }
 }

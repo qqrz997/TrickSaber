@@ -14,10 +14,6 @@ internal class SaberTrickManager : MonoBehaviour
 
     public SaberTrickModel SaberTrickModel = null!;
 
-    public bool Enabled = true;
-
-    public bool IsLeftSaber => _saber.saberType == SaberType.SaberA;
-
     private VRController _vrController = null!;
 
     private Saber _saber = null!;
@@ -72,8 +68,14 @@ internal class SaberTrickManager : MonoBehaviour
             return;
         }
 
-        if (IsLeftSaber) _globalTrickManager.LeftSaberTrickManager = this;
-        else _globalTrickManager.RightSaberTrickManager = this;
+        if (_saber.saberType == SaberType.SaberA)
+        {
+            _globalTrickManager.LeftSaberTrickManager = this;
+        }
+        else
+        {
+            _globalTrickManager.RightSaberTrickManager = this;
+        }
 
         _movementController.Init(_vrController);
 
@@ -81,15 +83,13 @@ internal class SaberTrickManager : MonoBehaviour
         _inputManager.TrickActivated += OnTrickActivated;
         _inputManager.TrickDeactivated += OnTrickDeactivated;
 
-        var success = await SaberTrickModel.Init(_saber);
-        if (success) _logger.Debug($"Got saber model");
-        else
+        if (!await SaberTrickModel.Init(_saber))
         {
             _logger.Error("Couldn't get saber model");
             Cleanup();
             return;
         }
-
+        
         _movementController.enabled = true;
 
         AddTrick<SpinTrick>();
@@ -100,7 +100,7 @@ internal class SaberTrickManager : MonoBehaviour
             _pauseController.didResumeEvent += EndAllTricks;
         }
 
-        _logger.Info($"Trick Manager initialized {_tricks.Count} trick{(_tricks.Count == 1 ? string.Empty : "s")}.");
+        _logger.Info($"Trick Manager initialized {_tricks.Count} {(_tricks.Count == 1 ? "trick" : "tricks")}.");
     }
 
     private void Cleanup()
@@ -121,61 +121,48 @@ internal class SaberTrickManager : MonoBehaviour
 
     private void OnTrickDeactivated(TrickAction trickAction)
     {
-        var trick = _tricks[trickAction];
-        if (trick.State != TrickState.Started) return;
-        trick.EndTrick();
+        if (_tricks.TryGetValue(trickAction, out var trick) && trick.state == TrickState.Started)
+        {
+            trick.EndTrick();
+        }
     }
 
     private void OnTrickActivated(TrickAction trickAction, float val)
     {
-        if (!CanDoTrick()) return;
-        var trick = _tricks[trickAction];
-        trick.Value = val;
-        if (trick.State != TrickState.Inactive) return;
-        if (_audioTimeSyncController.state ==
-            AudioTimeSyncController.State.Paused) return;
-        trick.StartTrick();
+        if (!CanDoTrick() || !_tricks.TryGetValue(trickAction, out var trick))
+        {
+            return;
+        }
+
+        trick.value = val;
+
+        if (trick.state == TrickState.Inactive
+            && _audioTimeSyncController.state != AudioTimeSyncController.State.Paused)
+        {
+            trick.StartTrick();
+        }
     }
-
-    #region Trick Events
-
-    private void OnTrickStart(TrickAction trickAction)
-    {
-        _globalTrickManager.OnTrickStarted(trickAction);
-    }
-
-    private void OnTrickEnding(TrickAction trickAction)
-    {
-        _globalTrickManager.OnTrickEndRequested(trickAction);
-    }
-
-    private void OnTrickEnd(TrickAction trickAction)
-    {
-        _globalTrickManager.OnTrickEnded(trickAction);
-    }
-
-    #endregion
 
     private void AddTrick<T>() where T : Trick
     {
         var trick = _trickFactory.Create(typeof(T), gameObject);
         trick.Init(this, _movementController);
-        trick.TrickStarted += OnTrickStart;
-        trick.TrickEnding += OnTrickEnding;
-        trick.TrickEnded += OnTrickEnd;
+        trick.TrickStarted += _globalTrickManager.OnTrickStarted;
+        trick.TrickEnding += _globalTrickManager.OnTrickEnding;
+        trick.TrickEnded += _globalTrickManager.OnTrickEnded;
         _tricks.Add(trick.TrickAction, trick);
     }
 
     public bool IsTrickInState(TrickAction trickAction, TrickState state)
     {
-        return _tricks[trickAction].State == state;
+        return _tricks.TryGetValue(trickAction, out var trick) && trick.state == state;
     }
 
     public bool IsDoingTrick()
     {
         foreach (var trick in _tricks.Values)
         {
-            if (trick.State != TrickState.Inactive) return true;
+            if (trick.state != TrickState.Inactive) return true;
         }
 
         return false;
@@ -191,8 +178,7 @@ internal class SaberTrickManager : MonoBehaviour
 
     private bool CanDoTrick()
     {
-        return _config.TrickSaberEnabled &&
-               Enabled &&
-               _globalTrickManager.CanDoTrick();
+        return _config.TrickSaberEnabled;
+        //&& _globalTrickManager.CanDoTrick();
     }
 }

@@ -16,8 +16,8 @@ internal class SaberControllerBearer
 
     internal struct SaberControllerPackage
     {
-        public Saber Saber;
-        public VRController VRController;
+        public Saber Saber { get; }
+        public VRController VRController { get; }
 
         public SaberControllerPackage(Saber saber, VRController vrController)
         {

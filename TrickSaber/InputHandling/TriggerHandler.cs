@@ -7,7 +7,10 @@ internal class TriggerHandler : InputHandler
 {
     private readonly string _inputString;
 
-    public TriggerHandler(XRNode node, float threshold, bool isReversed = false) : base(threshold, isReversed)
+    public TriggerHandler(
+        float threshold,
+        bool isReversed,
+        XRNode node) : base(threshold, isReversed)
     {
         _inputString = node == XRNode.LeftHand ? "TriggerLeftHand" : "TriggerRightHand";
     }

@@ -7,7 +7,6 @@ namespace TrickSaber.Tricks;
 internal class SpinTrick : Trick
 {
     private bool _isVelocityDependent;
-    private Transform? _saberModelTransform;
     private float _spinSpeed;
     private float _largestSpinSpeed;
     private float _finalSpinSpeed;
@@ -16,10 +15,6 @@ internal class SpinTrick : Trick
 
     public override void OnInit()
     {
-        if (SaberTrickModel.OriginalSaberModel)
-        {
-            _saberModelTransform = SaberTrickModel.OriginalSaberModel!.transform;
-        }
         _isVelocityDependent = _config.IsSpeedVelocityDependent;
     }
 
@@ -31,72 +26,70 @@ internal class SpinTrick : Trick
             var angularVelocity = MovementController.GetAverageAngularVelocity();
             _spinSpeed = Math.Abs(angularVelocity.x) + Math.Abs(angularVelocity.y);
             angularVelocity = Quaternion.Inverse(MovementController.ControllerRotation) * angularVelocity;
-            if (angularVelocity.x < 0) _spinSpeed *= -1;
+            if (angularVelocity.x < 0)
+            {
+                _spinSpeed *= -1;
+            }
         }
         else
         {
-            var speed = 30;
-            if (_config.SpinDirection == SpinDir.Backward) speed *= -1;
-            _spinSpeed = speed;
+            _spinSpeed = _config.SpinDirection == SpinDir.Forward ? 30 : -30;
         }
 
         _spinSpeed *= _config.SpinSpeed;
     }
 
-    void Update()
+    private void Update()
     {
         _finalSpinSpeed = _spinSpeed;
-        if (!_isVelocityDependent) _finalSpinSpeed *= (float) Math.Pow(Value, 3);
-        if (Math.Abs(_finalSpinSpeed) > Math.Abs(_largestSpinSpeed)) _largestSpinSpeed = _finalSpinSpeed;
-        if (_saberModelTransform)
+        if (!_isVelocityDependent)
         {
-            _saberModelTransform!.Rotate(Vector3.right * _finalSpinSpeed);
+            _finalSpinSpeed *= Mathf.Pow(value, 3f);
         }
+
+        if (Math.Abs(_finalSpinSpeed) > Math.Abs(_largestSpinSpeed))
+        {
+            _largestSpinSpeed = _finalSpinSpeed;
+        }
+
+        SaberTrickModel.Transform.Rotate(Vector3.right * _finalSpinSpeed);
     }
 
-    #region Rotation-end Coroutines
     private IEnumerator LerpToOriginalRotation()
     {
-        if (!_saberModelTransform) yield break;
-        
-        var rot = _saberModelTransform!.localRotation;
+        var rot = SaberTrickModel.Transform.localRotation;
         while (Quaternion.Angle(rot, Quaternion.identity) > 5f)
         {
             rot = Quaternion.Lerp(rot, Quaternion.identity, Time.deltaTime * 20);
-            _saberModelTransform.localRotation = rot;
+            SaberTrickModel.Transform.localRotation = rot;
             yield return new WaitForEndOfFrame();
         }
 
-        _saberModelTransform.localRotation = Quaternion.identity;
-        Reset();
+        OnTrickEndImmediately();
     }
 
     private IEnumerator CompleteRotation()
     {
-        if (!_saberModelTransform) yield break;
-        
-        var minSpeed = 8;
-        var largestSpinSpeed = _largestSpinSpeed;
+        const int minSpeed = 8;
+        float largestSpinSpeed = _largestSpinSpeed;
 
         if (Mathf.Abs(largestSpinSpeed) < minSpeed)
         {
             largestSpinSpeed = largestSpinSpeed < 0 ? -minSpeed : minSpeed;
         }
 
-        var threshold = Mathf.Abs(largestSpinSpeed) + 0.1f;
-        var angle = Quaternion.Angle(_saberModelTransform!.localRotation, Quaternion.identity);
+        float threshold = Mathf.Abs(largestSpinSpeed) + 0.1f;
+        float angle = Quaternion.Angle(SaberTrickModel.Transform.localRotation, Quaternion.identity);
 
         while (angle > threshold)
         {
-            _saberModelTransform.Rotate(Vector3.right * largestSpinSpeed);
-            angle = Quaternion.Angle(_saberModelTransform.localRotation, Quaternion.identity);
+            SaberTrickModel.Transform.Rotate(Vector3.right * largestSpinSpeed);
+            angle = Quaternion.Angle(SaberTrickModel.Transform.localRotation, Quaternion.identity);
             yield return new WaitForEndOfFrame();
         }
 
-        _saberModelTransform.localRotation = Quaternion.identity;
-        Reset();
+        OnTrickEndImmediately();
     }
-    #endregion
 
     public override void OnTrickEndRequested()
     {
@@ -105,10 +98,8 @@ internal class SpinTrick : Trick
 
     public override void OnTrickEndImmediately()
     {
-        if (_saberModelTransform)
-        {
-            _saberModelTransform!.localRotation = Quaternion.identity;
-        }
+        SaberTrickModel.Transform.localPosition = SaberTrickModel.DefaultPosition;
+        SaberTrickModel.Transform.localRotation = SaberTrickModel.DefaultRotation;
         Reset();
     }
 }
